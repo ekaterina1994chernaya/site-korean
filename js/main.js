@@ -7,7 +7,19 @@ document.addEventListener("DOMContentLoaded", () => {
   initAccordion();
   initExercises();
   openFromHash();
+  if (document.querySelector(".comic")) {
+    trackGoal("watch_comic");
+  }
 });
+
+/* ---------- Метрика: цели для обоих счётчиков ---------- */
+
+const METRICA_IDS = [113306247, 113307696];
+
+function trackGoal(goal) {
+  if (typeof window.ym !== "function") return;
+  METRICA_IDS.forEach((id) => window.ym(id, "reachGoal", goal));
+}
 
 /* ---------- Акордеон с текстами ---------- */
 
@@ -17,7 +29,9 @@ function initAccordion() {
   heads.forEach((head) => {
     head.addEventListener("click", () => {
       const item = head.closest(".accordion-item");
-      item.classList.toggle("open");
+      if (item.classList.toggle("open")) {
+        trackGoal("open_text");
+      }
     });
   });
 }
@@ -42,6 +56,7 @@ function initExercises() {
           btn.classList.add("correct");
           feedback.textContent = "정답! (Правильно!)";
           feedback.classList.add("show", "good");
+          trackGoal("correct_answer");
         } else {
           btn.classList.add("wrong");
           options[correctIndex].classList.add("correct");
@@ -50,6 +65,15 @@ function initExercises() {
         }
 
         options.forEach((b) => (b.disabled = true));
+
+        // цель: все 3 задания текста отвечены
+        const body = ex.closest(".accordion-body");
+        const allDone =
+          body &&
+          [...body.querySelectorAll(".exercise")].every(
+            (e) => e.dataset.done === "true"
+          );
+        if (allDone) trackGoal("all_answers");
       });
     });
   });
@@ -63,5 +87,6 @@ function openFromHash() {
   const item = document.querySelector(hash);
   if (item && item.classList.contains("accordion-item")) {
     item.classList.add("open");
+    trackGoal("open_text");
   }
 }
